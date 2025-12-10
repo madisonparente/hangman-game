@@ -1,8 +1,11 @@
+# I pledge my honor that I have abided by the Stevens Honor System - Madison Parente
+
 import pygame
 import sys
 import random
 
 # Initialize Pygame
+clock = pygame.time.Clock()
 pygame.init()
 
 # Window Setup and Colors
@@ -20,15 +23,27 @@ LIGHT_GRAY = (183, 188, 196)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hangman")
 
+background = pygame.image.load("hman_2.jpg")
+background = pygame.transform.scale(background, (WIDTH, HEIGHT))
+
 # Fonts
 LETTER_FONT = pygame.font.SysFont('comicsans', 30)
 TITLE_FONT = pygame.font.SysFont('calabri', 60 )
 END_FONT = pygame.font.SysFont('georgia', 75)
+END_FONT2 = pygame.font.SysFont('georgia', 30)
 SMALL_FONT = pygame.font.SysFont('comicsans', 25)
 DESC_FONT = pygame.font.SysFont('comicsans', 23)
+SMALLER_FONT = pygame.font.SysFont('comicsans', 15)
 
 #screens
 curr_screen = "menu"
+gState = "hide"
+
+check_img = pygame.image.load("checkmark.png").convert_alpha()
+check_img = pygame.transform.scale(check_img, (40, 40))
+
+face_img = pygame.image.load("face.png").convert_alpha()
+face_img = pygame.transform.scale(face_img, (53, 53))
 
 def load_words(filename):
     with open(filename, "r") as f:
@@ -43,30 +58,46 @@ def menu_screen():
     background = pygame.transform.scale(background, (WIDTH, HEIGHT)) 
     screen.blit(background, (0, 0))
 
-    computer_button = pygame.Rect(250, 400, 200, 80)
+    playgame_button = pygame.Rect(440, 210, 150, 80)
     htp_buttoncirc = {"htppos": (35,35), "htprad": (20)} #howtoplay
 
-    pygame.draw.rect(screen, BLACK, computer_button, border_radius=10)
+    pygame.draw.rect(screen, BLACK, playgame_button, border_radius=10)
     htp_button = pygame.draw.circle(screen, (20, 28, 181), htp_buttoncirc["htppos"], htp_buttoncirc["htprad"])
-
-    computer_text = LETTER_FONT.render("Computer", True, WHITE)
+    
+    playgame_text = LETTER_FONT.render("Play", True, WHITE)
     title_text = TITLE_FONT.render("Welcome to Hangman!", True, WHITE)
     htp_text = LETTER_FONT.render("i", True, WHITE)
 
-    screen.blit(computer_text, (computer_button.x + 30, computer_button.y + 20))
-    screen.blit(title_text, (275, 100))
+    screen.blit(playgame_text, (playgame_button.x + 45, playgame_button.y + 20))
+    screen.blit(title_text, (285, 100))
     screen.blit(htp_text, (30,10))
-    return computer_button, htp_button
+
+    # Draw Hangman Figure on Menu Screen
+    draw_head(517, 387)
+    draw_body(506, 411)
+    draw_arm1(490, 425, 470, 425)
+    draw_arm2(520, 425, 532, 425)
+    draw_leg1(508, 473, 494, 508)
+    draw_leg2(515, 473, 515, 508)
+    screen.blit(face_img, (490, 360))
+
+    return playgame_button, htp_button
 
 def htpscreen():
     overlay = pygame.Surface((700, 500), pygame.SRCALPHA)
-    overlay.fill((182, 229, 250, 250))
+    overlay.fill((181, 180, 176, 250)) # fourth number is alpha for transparency, increase for less transparent
     screen.blit(overlay, (150, 65))
 
     htp_text = TITLE_FONT.render("How To Play Hangman", True, BLACK)
     screen.blit(htp_text, (275, 100))
     htp_desc = SMALL_FONT.render("Hangman is a word-guessing game. The objective ", True, BLACK)
-    screen.blit(htp_desc, (175, 150))
+    htp_desc_2 = SMALL_FONT.render("is to guess the hidden word by suggesting letters", True, BLACK)
+    htp_desc_3 = SMALL_FONT.render("within a certain number of guesses. Each incorrect", True, BLACK)
+    htp_desc_4 = SMALL_FONT.render("guess results in a part of the hangman being drawn.", True, BLACK)
+    screen.blit(htp_desc, (215, 225))
+    screen.blit(htp_desc_2, (215, 275))
+    screen.blit(htp_desc_3, (205, 325))
+    screen.blit(htp_desc_4, (205, 375))
 
 def diffdesc(diffState):
         diffdesc_box = pygame.Rect(500, 200, 350, 275)
@@ -74,33 +105,39 @@ def diffdesc(diffState):
         if (diffState == 'easy'):
             pygame.draw.rect(screen, WHITE, easy_button, border_radius=10)
             easy_text = LETTER_FONT.render("Easy", True, BLACK)
-            screen.blit(easy_text, (easy_button.x + 50, easy_button.y + 20))
+            screen.blit(easy_text, (easy_button.x + 65, easy_button.y + 20))
             easydesc = DESC_FONT.render("Easy Difficulty Info", True, WHITE)
             easydesc_1 = DESC_FONT.render("Word Length: 3-4 Characters", True, WHITE)
             easydesc_2 = DESC_FONT.render("# of Guesses: 10", True, WHITE)
-            screen.blit(easydesc, (diffdesc_box.x + 12, diffdesc_box.y + 10))
+            easydesc_3 = DESC_FONT.render("Beginner Level", True, WHITE)
+            screen.blit(easydesc, (diffdesc_box.x + 70, diffdesc_box.y + 10))
             screen.blit(easydesc_1, (diffdesc_box.x + 12, diffdesc_box.y + 75))
-            screen.blit(easydesc_2, (diffdesc_box.x + 12, diffdesc_box.y + 125))
+            screen.blit(easydesc_2, (diffdesc_box.x + 80, diffdesc_box.y + 125))
+            screen.blit(easydesc_3, (diffdesc_box.x + 95, diffdesc_box.y + 175))
         if (diffState == 'medium'):
             pygame.draw.rect(screen, WHITE, medium_button, border_radius=10)
             medium_text = LETTER_FONT.render("Medium", True, BLACK)
-            screen.blit(medium_text, (medium_button.x + 50, medium_button.y + 20))
+            screen.blit(medium_text, (medium_button.x + 45, medium_button.y + 20))
             mediumdesc = DESC_FONT.render("Medium Difficulty Info", True, WHITE)
             mediumdesc_1 = DESC_FONT.render("Word Length: 5-6 Characters", True, WHITE)
             mediumdesc_2 = DESC_FONT.render("# of Guesses: 7", True, WHITE)
-            screen.blit(mediumdesc, (diffdesc_box.x + 12, diffdesc_box.y + 10))
+            mediumdesc_3 = DESC_FONT.render("Intermediate Level", True, WHITE)
+            screen.blit(mediumdesc, (diffdesc_box.x + 50, diffdesc_box.y + 10))
             screen.blit(mediumdesc_1, (diffdesc_box.x + 12, diffdesc_box.y + 75))
-            screen.blit(mediumdesc_2, (diffdesc_box.x + 12, diffdesc_box.y + 125))
+            screen.blit(mediumdesc_2, (diffdesc_box.x + 80, diffdesc_box.y + 125))
+            screen.blit(mediumdesc_3, (diffdesc_box.x + 65, diffdesc_box.y + 175))
         if (diffState == 'hard'):
             pygame.draw.rect(screen, WHITE, hard_button, border_radius=10)
             hard_text = LETTER_FONT.render("Hard", True, BLACK)
-            screen.blit(hard_text, (hard_button.x + 50, hard_button.y + 20))
+            screen.blit(hard_text, (hard_button.x + 60, hard_button.y + 20))
             harddesc = DESC_FONT.render("Hard Difficulty Info", True, WHITE)
             harddesc_1 = DESC_FONT.render("Word Length: 7-10 Characters", True, WHITE)
             harddesc_2 = DESC_FONT.render("# of Guesses: 5", True, WHITE)
-            screen.blit(harddesc, (diffdesc_box.x + 12, diffdesc_box.y + 10))
-            screen.blit(harddesc_1, (diffdesc_box.x + 12, diffdesc_box.y + 75))
-            screen.blit(harddesc_2, (diffdesc_box.x + 12, diffdesc_box.y + 125))
+            harddesc_3 = DESC_FONT.render("Expert Level", True, WHITE)
+            screen.blit(harddesc, (diffdesc_box.x + 65, diffdesc_box.y + 10))
+            screen.blit(harddesc_1, (diffdesc_box.x + 10, diffdesc_box.y + 75))
+            screen.blit(harddesc_2, (diffdesc_box.x + 85, diffdesc_box.y + 125))
+            screen.blit(harddesc_3, (diffdesc_box.x + 105, diffdesc_box.y + 175))
 
 
 def difficulty_screen():
@@ -109,14 +146,10 @@ def difficulty_screen():
     screen.blit(background, (0, 0))
 
     # Base in back to fill empty space
-    base1_1 = pygame.Rect(565, 500, 150, 25)
-    pygame.draw.rect(screen, BROWN, base1_1, border_radius=3)
-    base2_1 = pygame.Rect(630, 220, 25, 300)
-    pygame.draw.rect(screen, BROWN, base2_1, border_radius=3)
-    base3_1 = pygame.Rect(640, 220, 150, 25)
-    pygame.draw.rect(screen, BROWN, base3_1, border_radius=3)
-    base4_1 = pygame.Rect(765, 240, 25, 50)
-    pygame.draw.rect(screen, BROWN, base4_1, border_radius=3)
+    draw_base1(565, 500)
+    draw_base2(630, 220)
+    draw_base3(640, 220)
+    draw_base4(765, 240)
 
     easy_button = pygame.Rect(250, 200, 200, 80)
     medium_button = pygame.Rect(250, 300, 200, 80)
@@ -131,9 +164,9 @@ def difficulty_screen():
     hard_text = LETTER_FONT.render("Hard", True, WHITE)
     difficulty_text = TITLE_FONT.render("Choose a Difficulty", True, WHITE)
 
-    screen.blit(easy_text, (easy_button.x + 50, easy_button.y + 20))
-    screen.blit(medium_text, (medium_button.x + 30, medium_button.y + 20))
-    screen.blit(hard_text, (hard_button.x + 30, hard_button.y + 20))
+    screen.blit(easy_text, (easy_button.x + 65, easy_button.y + 20))
+    screen.blit(medium_text, (medium_button.x + 45, medium_button.y + 20))
+    screen.blit(hard_text, (hard_button.x + 60, hard_button.y + 20))
     screen.blit(difficulty_text, (315, 50))
 
     goback_button1, goback_button2 = goback_button(hover)
@@ -158,15 +191,37 @@ def setup_game(difficulty):
         chosenWord = random.choice(hard_words)
 
     starting_parts = {"easy": 0, "medium": 3, "hard": 5}
+    guesses = {"easy": 10, "medium": 7, "hard": 5}
 
     wrong_guesses = starting_parts[difficulty]
+    global guess_remain
+    guess_remain = guesses[difficulty]
 
     return chosenWord
 
-def game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses):
-    background = pygame.image.load("hman_2.jpg")
-    background = pygame.transform.scale(background, (WIDTH, HEIGHT)) 
+def game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses, guess_remain, mouse_pos):
     screen.blit(background, (0, 0))
+
+    global gState
+
+    guessbox = pygame.Rect(950, 10, 40, 40)
+    pygame.draw.rect(screen, LIGHT_GRAY, guessbox, border_radius=5)
+    if guessbox.collidepoint(mouse_pos):
+        if gState == "hide":
+            screen.blit(check_img, (950, 10))
+            screen.blit(SMALLER_FONT.render("Click to show remaining guesses", True, BLACK), (720, 20))
+        else:  # gState == "show"
+            screen.blit(SMALLER_FONT.render("Click to hide remaining guesses", True, BLACK), (720, 20))
+    # Click toggle
+    if event.type == pygame.MOUSEBUTTONDOWN and guessbox.collidepoint(mouse_pos):
+        if gState == "hide":
+            gState = "show"
+        else:
+            gState = "hide"
+    # Display when enabled
+    if gState == "show":
+        screen.blit(check_img, (950, 10))
+        screen.blit(SMALL_FONT.render(f"Guesses remaining: {guess_remain}", True, BLACK), (400, 20))
 
     # Variables and Dimensions - Row 1 of Keys
 
@@ -192,32 +247,40 @@ def game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses):
    
 def end_screen(WLstate):
 
-    game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses)
+    # draw previous game once (no lag)
+    screen.blit(game_snapshot, (0, 0))
+
+    # overlay box
     overlay = pygame.Surface((700, 500), pygame.SRCALPHA)
     overlay.fill((181, 180, 176, 230))
     screen.blit(overlay, (150, 65))
 
+    # win/loss text
     if WLstate == "win":
-        win_text = END_FONT.render("You Win!", True, BLACK)
-        screen.blit(win_text, (350, 200))
-    elif WLstate == "loss":
-        loss_text = END_FONT.render("You Lost!", True, BLACK)
-        screen.blit(loss_text, (350,200))
+        text = END_FONT.render("You Win!", True, BLACK)
+    else:
+        text = END_FONT.render("You Lost!", True, BLACK)
+    screen.blit(text, (350, 170))
 
-    playagain_button = pygame.Rect(325, 370, 150, 80)
-    mainmenu_button = pygame.Rect(550, 370, 150, 80)
+    # buttons
+    playagain_button = pygame.Rect(325, 380, 150, 80)
+    mainmenu_button = pygame.Rect(550, 380, 150, 80)
 
-    pygame.draw.rect(screen, BLACK, playagain_button, border_radius=10)
-    pygame.draw.rect(screen, BLACK, mainmenu_button, border_radius=10)
+    play_color = WHITE if playagain_button.collidepoint(mouse_pos) else BLACK
+    menu_color = WHITE if mainmenu_button.collidepoint(mouse_pos) else BLACK
+    play_text = BLACK if playagain_button.collidepoint(mouse_pos) else WHITE
+    menu_text = BLACK if mainmenu_button.collidepoint(mouse_pos) else WHITE
 
-    playagain_text = SMALL_FONT.render("Play Again", True, WHITE)
-    menu_text = LETTER_FONT.render("Menu", True, WHITE)
-    display_word = chosenWord.upper()
-    word_text_2 = LETTER_FONT.render(display_word, True, WHITE)
+    pygame.draw.rect(screen, play_color, playagain_button, border_radius=10)
+    pygame.draw.rect(screen, menu_color, mainmenu_button, border_radius=10)
 
-    screen.blit(playagain_text, (playagain_button.x + 20, playagain_button.y + 20))
-    screen.blit(menu_text, (mainmenu_button.x + 35, mainmenu_button.y + 20))
-    screen.blit(word_text_2, (350, 250))
+    # text on buttons
+    screen.blit(SMALL_FONT.render("Play Again", True, play_text), (playagain_button.x + 15, playagain_button.y + 20))
+    screen.blit(LETTER_FONT.render("Menu", True, menu_text), (mainmenu_button.x + 35, mainmenu_button.y + 20))
+
+    # word reveal
+    screen.blit(END_FONT2.render("The word was:", True, BLACK), (350, 285))
+    screen.blit(END_FONT2.render(chosenWord.upper(), True, BLACK), (555, 285))
 
     return playagain_button, mainmenu_button
 
@@ -238,51 +301,51 @@ def goback_button(hover):
 
     return goback_button1, goback_button2
 
-def draw_base1():
-    base1 = pygame.Rect(325, 380, 150, 25)
+def draw_base1(x=325, y=380):
+    base1 = pygame.Rect(x, y, 150, 25)#325, 380
     pygame.draw.rect(screen, BROWN, base1, border_radius=3)
     
-def draw_base2():
-    base2 = pygame.Rect(390, 100, 25, 300)
+def draw_base2(x=390, y=100):
+    base2 = pygame.Rect(x, y, 25, 300)#390, 100
     pygame.draw.rect(screen, BROWN, base2, border_radius=3)
 
-def draw_base3():
-    base3 = pygame.Rect(400, 100, 150, 25)
+def draw_base3(x=400, y=100):
+    base3 = pygame.Rect(x, y, 150, 25)#400, 100
     pygame.draw.rect(screen, BROWN, base3, border_radius=3)
 
-def draw_base4():
-    base4 = pygame.Rect(525, 120, 25, 50)
+def draw_base4(x=525, y=120):
+    base4 = pygame.Rect(x, y, 25, 50)#525, 120
     pygame.draw.rect(screen, BROWN, base4, border_radius=3)
 
-def draw_head():
-    head = {"headpos": (538, 190), "headrad": 25}
+def draw_head(x=538, y=190):
+    head = {"headpos": (x, y), "headrad": 25} #538, 190
     pygame.draw.circle(screen, SKIN, head["headpos"], head["headrad"])
 
-def draw_body():
-    body = pygame.Rect(528, 212, 20, 65)
+def draw_body(x=528, y=212):
+    body = pygame.Rect(x, y, 20, 65) #528, 212
     pygame.draw.rect(screen, SHIRT, body, border_radius=3)
 
-def draw_arm1():
-    arm1_1 = pygame.Rect(510, 225, 20, 15)
-    arm1_2 = pygame.Rect(490, 225, 30, 15)
+def draw_arm1(x=510, y=225, a=490, b=225):
+    arm1_1 = pygame.Rect(x, y, 20, 15) #510, 225
+    arm1_2 = pygame.Rect(a, b, 30, 15) #490, 225
     pygame.draw.rect(screen, SHIRT, arm1_1, border_radius=3)
     pygame.draw.rect(screen, SKIN, arm1_2, border_radius=3)
 
-def draw_arm2():
-    arm2_1 = pygame.Rect(545, 225, 20, 15)
-    arm2_2 = pygame.Rect(555, 225, 30, 15)
+def draw_arm2(x=545, y=225, a=555, b=225):
+    arm2_1 = pygame.Rect(x, y, 20, 15) #545, 225
+    arm2_2 = pygame.Rect(a, b, 30, 15) #555, 225
     pygame.draw.rect(screen, SHIRT, arm2_1, border_radius=3)
     pygame.draw.rect(screen, SKIN, arm2_2, border_radius=3)
 
-def draw_leg1():
-    leg1_1 = pygame.Rect(528, 274, 10, 40)
-    leg1_2 = pygame.Rect(514, 301, 25, 13)
+def draw_leg1(x=528, y=274, a=514, b=301):
+    leg1_1 = pygame.Rect(x, y, 10, 40) #528, 274
+    leg1_2 = pygame.Rect(a, b, 25, 13) #514, 301
     pygame.draw.rect(screen, JEANS, leg1_1, border_radius=3)
     pygame.draw.rect(screen, BLACK, leg1_2, border_radius=6)
 
-def draw_leg2():
-    leg2_1 = pygame.Rect(538, 274, 10, 40)
-    leg2_2 = pygame.Rect(535, 301, 25, 13)
+def draw_leg2(x=538, y=274, a=535, b=301):
+    leg2_1 = pygame.Rect(x, y, 10, 40) #538, 274
+    leg2_2 = pygame.Rect(a, b, 25, 13) #535, 301
     pygame.draw.rect(screen, JEANS, leg2_1, border_radius=3)
     pygame.draw.rect(screen, BLACK, leg2_2, border_radius=6)
 
@@ -311,7 +374,7 @@ def draw_letter_lines(word_length, y=475, line_width=50, spacing=10):
 
 # Main Loop
 run = True
-htp_button = computer_button = player_button = None
+htp_button = playgame_button = player_button = None
 easy_button = medium_button = hard_button = None
 mainmenu_button = playagain_button = None
 goback_button1 = goback_button2 = None
@@ -352,7 +415,7 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN:
 
             # Menu Screen Buttons
-            if curr_screen == "menu" and computer_button and computer_button.collidepoint(mouse_pos):
+            if curr_screen == "menu" and playgame_button and playgame_button.collidepoint(mouse_pos):
                 curr_screen = "difficulty"
 
             # Difficulty Screen Buttons 
@@ -394,28 +457,29 @@ while run:
                     button_colors[key_pressed] = GREEN
                 else:
                     wrong_guesses += 1
+                    guess_remain -= 1
                     button_colors[key_pressed] = RED
 
                 if all(letter in revealed_letters for letter in chosenWord):
-                    print("You win!")
                     WLstate = "win"
+                    game_snapshot = screen.copy()
                     curr_screen = "end"
 
                 if wrong_guesses >= 10:
-                    print("You lost! The word was:", chosenWord)
                     WLstate = "loss"
+                    game_snapshot = screen.copy()
                     curr_screen = "end"
 
     # Draw current screen
     if curr_screen == "menu":
-        computer_button, htp_button = menu_screen()
+        playgame_button, htp_button = menu_screen()
         #Hovering
         if htp_button and htp_button.collidepoint(mouse_pos):
             htpscreen()
-        if computer_button and computer_button.collidepoint(mouse_pos):
-            pygame.draw.rect(screen, WHITE, computer_button, border_radius=10)
-            computer_text = LETTER_FONT.render("Computer", True, BLACK)
-            screen.blit(computer_text, (computer_button.x + 30, computer_button.y + 20))
+        if playgame_button and playgame_button.collidepoint(mouse_pos):
+            pygame.draw.rect(screen, WHITE, playgame_button, border_radius=10)
+            playgame_text = LETTER_FONT.render("Play", True, BLACK)
+            screen.blit(playgame_text, (playgame_button.x + 45, playgame_button.y + 20))
     elif curr_screen == "difficulty":
         easy_button, medium_button, hard_button, goback_button1, goback_button2 = difficulty_screen()
         # Hovering Buttons
@@ -434,13 +498,12 @@ while run:
         else:
             hover = 'no'
     elif curr_screen == "game":
-        game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses)
+        game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses, guess_remain, mouse_pos)
     elif curr_screen == "end":
         playagain_button, mainmenu_button = end_screen(WLstate)     
-        # Hovering Buttons
 
     pygame.display.update()
+    clock.tick(60)   # Cap the game at 60 FPS
 
-print(chosenWord)
 pygame.quit()
 sys.exit()
