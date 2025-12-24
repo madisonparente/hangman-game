@@ -1,6 +1,6 @@
-﻿# Hangman Game (Work In Progress)
+﻿# Hangman Game 
 This repository contains a Hangman game recreation built with Pygame, developed as part of my final project for SSW 215 - Individual Software Engineering at Stevens Institute of Technology.
-The project is still a **work in progress**, with new features, UI polish and bug fixes planned.
+The project is a completed interactive Hangman game featuring a custom graphical interface, multiple difficulty levels, and structured game state management.
 
 ## Project Overview
 This Hangman game is a fully interactive GUI application featuring:
@@ -12,14 +12,11 @@ This Hangman game is a fully interactive GUI application featuring:
 
 The game is designed to resemble a standard Hangman game with custom-drawn graphics and a polished visual interface created with Pygame.
 
-## Work In Progress
-This project is actively being developed. Future updates will include:
-* Improved instructions & UI layout
-* Code optimizing
-* Additional animations
-* Error handling and input validation
-* Settings menu / accessibility features
-Expect frequent commits while the project evolves.
+## Features
+* Complete menu and game flow
+* Difficulty-based word selection and guess limits
+* Keyboard input letter guessing
+* Real-time visual updates for correct and incorrect guesses
 
 ## How It Works
 ### Game Logic
@@ -34,6 +31,7 @@ Expect frequent commits while the project evolves.
    * Return to menu
 ###  Word Loading
 Words come from external .txt files 
+
 ### Difficulty Behavior
 | Difficulty | Word Length | Guesses |
 |-----------|-------------|---------|
@@ -65,5 +63,6 @@ python hangman.py
 ## Contributors
 Developer: Madison Parente  
 Course: SSW 215 - Individual Software Engineering  
-Instituion: Stevens Institute of Technology  
+Institution: Stevens Institute of Technology  
+
 
