@@ -35,16 +35,18 @@ SMALL_FONT = pygame.font.SysFont('comicsans', 25)
 DESC_FONT = pygame.font.SysFont('comicsans', 23)
 SMALLER_FONT = pygame.font.SysFont('comicsans', 15)
 
-#screens
+# Global Variables
 curr_screen = "menu"
 gState = "hide"
 
+# Images
 check_img = pygame.image.load("checkmark.png").convert_alpha()
 check_img = pygame.transform.scale(check_img, (40, 40))
 
 face_img = pygame.image.load("face.png").convert_alpha()
 face_img = pygame.transform.scale(face_img, (53, 53))
 
+# Load Words
 def load_words(filename):
     with open(filename, "r") as f:
         return [line.strip() for line in f.readlines()]
@@ -53,11 +55,12 @@ easy_words = load_words("easy.txt")
 medium_words = load_words("medium.txt")
 hard_words = load_words("hard.txt")
 
+# Menu Screen
 def menu_screen():
     background = pygame.image.load("hman_1.jpg")
     background = pygame.transform.scale(background, (WIDTH, HEIGHT)) 
     screen.blit(background, (0, 0))
-
+    
     playgame_button = pygame.Rect(440, 210, 150, 80)
     htp_buttoncirc = {"htppos": (35,35), "htprad": (20)} #howtoplay
 
@@ -83,6 +86,7 @@ def menu_screen():
 
     return playgame_button, htp_button
 
+# How To Play Screen
 def htpscreen():
     overlay = pygame.Surface((700, 500), pygame.SRCALPHA)
     overlay.fill((181, 180, 176, 250)) # fourth number is alpha for transparency, increase for less transparent
@@ -151,6 +155,7 @@ def difficulty_screen():
     draw_base3(640, 220)
     draw_base4(765, 240)
 
+    # Difficulty Buttons
     easy_button = pygame.Rect(250, 200, 200, 80)
     medium_button = pygame.Rect(250, 300, 200, 80)
     hard_button = pygame.Rect(250, 400, 200, 80)
@@ -159,6 +164,7 @@ def difficulty_screen():
     pygame.draw.rect(screen, BLACK, medium_button, border_radius=10)
     pygame.draw.rect(screen, BLACK, hard_button, border_radius=10)
 
+    # Text
     easy_text = LETTER_FONT.render("Easy", True, WHITE)
     medium_text = LETTER_FONT.render("Medium", True, WHITE)
     hard_text = LETTER_FONT.render("Hard", True, WHITE)
@@ -173,6 +179,7 @@ def difficulty_screen():
 
     return easy_button, medium_button, hard_button, goback_button1, goback_button2
 
+# Game Setup
 def setup_game(difficulty):
     global chosenWord, wrong_guesses
 
@@ -183,6 +190,7 @@ def setup_game(difficulty):
     for letter in button_colors:
         button_colors[letter] = BLACK
 
+    # Choose word based on difficulty
     if difficulty == "easy":
         chosenWord = random.choice(easy_words)
     elif difficulty == "medium":
@@ -190,6 +198,7 @@ def setup_game(difficulty):
     elif difficulty == "hard":
         chosenWord = random.choice(hard_words)
 
+    # Set starting parts and guesses based on difficulty
     starting_parts = {"easy": 0, "medium": 3, "hard": 5}
     guesses = {"easy": 10, "medium": 7, "hard": 5}
 
@@ -204,6 +213,7 @@ def game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses, gu
 
     global gState
 
+    # Guesses toggle button
     guessbox = pygame.Rect(950, 10, 40, 40)
     pygame.draw.rect(screen, LIGHT_GRAY, guessbox, border_radius=5)
     if guessbox.collidepoint(mouse_pos):
@@ -244,28 +254,29 @@ def game_screen(chosenWord, guessed_letters, revealed_letters, wrong_guesses, gu
             letter_text = LETTER_FONT.render(letter.upper(), True, BLACK)
             x, y = line_positions[i]
             screen.blit(letter_text, (x + 15, y + y_offset))
-   
+# End Screen
 def end_screen(WLstate):
 
-    # draw previous game once (no lag)
+    # Snapchat of game screen
     screen.blit(game_snapshot, (0, 0))
 
-    # overlay box
+    # Overlay 
     overlay = pygame.Surface((700, 500), pygame.SRCALPHA)
     overlay.fill((181, 180, 176, 230))
     screen.blit(overlay, (150, 65))
 
-    # win/loss text
+    # W/L Text
     if WLstate == "win":
         text = END_FONT.render("You Win!", True, BLACK)
     else:
         text = END_FONT.render("You Lost!", True, BLACK)
     screen.blit(text, (350, 170))
 
-    # buttons
+    # Buttons
     playagain_button = pygame.Rect(325, 380, 150, 80)
     mainmenu_button = pygame.Rect(550, 380, 150, 80)
 
+    # Hovering
     play_color = WHITE if playagain_button.collidepoint(mouse_pos) else BLACK
     menu_color = WHITE if mainmenu_button.collidepoint(mouse_pos) else BLACK
     play_text = BLACK if playagain_button.collidepoint(mouse_pos) else WHITE
@@ -274,11 +285,11 @@ def end_screen(WLstate):
     pygame.draw.rect(screen, play_color, playagain_button, border_radius=10)
     pygame.draw.rect(screen, menu_color, mainmenu_button, border_radius=10)
 
-    # text on buttons
+    # Text on buttons
     screen.blit(SMALL_FONT.render("Play Again", True, play_text), (playagain_button.x + 15, playagain_button.y + 20))
     screen.blit(LETTER_FONT.render("Menu", True, menu_text), (mainmenu_button.x + 35, mainmenu_button.y + 20))
 
-    # word reveal
+    # Word reveal
     screen.blit(END_FONT2.render("The word was:", True, BLACK), (350, 285))
     screen.blit(END_FONT2.render(chosenWord.upper(), True, BLACK), (555, 285))
 
@@ -364,6 +375,7 @@ def draw_letter_lines(word_length, y=475, line_width=50, spacing=10):
 
     line_positions = []
 
+    # Draw lines
     for i in range(word_length):
         x = start_x + i * (line_width + spacing)
         rect = pygame.Rect(x, y, line_width, 5)
@@ -452,14 +464,16 @@ while run:
             if key_pressed.isalpha() and key_pressed not in guessed_letters:
                 guessed_letters.append(key_pressed)
 
+                # Check if the guessed letter is in the word
                 if key_pressed in chosenWord:
-                    revealed_letters.append(key_pressed)
-                    button_colors[key_pressed] = GREEN
+                    revealed_letters.append(key_pressed) # Add to revealed letters if correct
+                    button_colors[key_pressed] = GREEN # Change button color to green if correct
                 else:
-                    wrong_guesses += 1
-                    guess_remain -= 1
-                    button_colors[key_pressed] = RED
+                    wrong_guesses += 1 # Increment wrong guesses
+                    guess_remain -= 1 # Decrement guesses remaining
+                    button_colors[key_pressed] = RED # Change button color to red if incorrect
 
+                # Check for win/loss
                 if all(letter in revealed_letters for letter in chosenWord):
                     WLstate = "win"
                     game_snapshot = screen.copy()
